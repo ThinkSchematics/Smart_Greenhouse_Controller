@@ -1,5 +1,5 @@
 /***************************************************************************************************
- * Johnny McCow of Think Schemcatics
+ * Johnny McCown of Think Schemcatics
  * Start Date: 20 Jan 18
  * 
  * At my last house I had a Greenhouse and it was solar powered, and controlled by a Raspberry Pi.  This time I want to 
