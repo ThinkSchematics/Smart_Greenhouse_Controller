@@ -47,6 +47,10 @@ void setup(void)
 
   pinMode(HeaterOne, OUTPUT);  //this will be the first heater to turn on 
   pinMode(HeaterTwo, OUTPUT);  // this will be a second heater to turn on if HeaterOne is not doing the job
+  
+  // Set both heaters to off.
+  digitalWrite(HeaterOne, HIGH);
+  digitalWrite(HeaterTwo, HIGH);
 }
 
 
