@@ -1,3 +1,13 @@
+/***************************************************************************************************
+ * Johnny McCow of Think Schemcatics
+ * Start Date: 20 Jan 18
+ * 
+ * At my last house I had a Greenhouse and it was solar powered, and controlled by a Raspberry Pi.  This time I want to 
+ * build a system that I could monitor the tempratures remotely and control stuff as needed.  This greenhouse is using Aquaponics
+ * rather than Hydoponics, so I have the help of Fish to worry about.  I want to be able to auomate their feeding if we are out of the local area.
+ ****************************************************************************************************/
+
+
 // Include the libraries we need
 #include <OneWire.h>
 #include <DallasTemperature.h>
@@ -5,8 +15,9 @@
 // Data wire is plugged into port 2 on the Arduino
 #define ONE_WIRE_BUS 2
 #define TEMPERATURE_PRECISION 9
-
+//I want to save power as much as posible so I am going to run one small heater then add another as needed
 #define HeaterOne 8 //This will be used to activate a relay
+#define HeaterTwo 9 //This will turn on a second heather if the temp drops tpo low
 
 float ambientTemp = 0; //this will be used to store the ambient temp so this value can be used elsewhere
 float tempF = 0;
@@ -34,7 +45,8 @@ void setup(void)
   sensors.setResolution(insideThermometer, TEMPERATURE_PRECISION);
   sensors.setResolution(outsideThermometer, TEMPERATURE_PRECISION);
 
-  pinMode(HeaterOne, OUTPUT);
+  pinMode(HeaterOne, OUTPUT);  //this will be the first heater to turn on 
+  pinMode(HeaterTwo, OUTPUT);  // this will be a second heater to turn on if HeaterOne is not doing the job
 }
 
 
@@ -90,10 +102,16 @@ void loop(void)
   printData(insideThermometer);
   printData(outsideThermometer);
 
-  if (tempF >= 69){
+  if (tempF >= 43){
     digitalWrite(HeaterOne, HIGH); //Anything above the set temp, will cause a high on this relay will deactivate it, causing the heater to turn off
   } else{
     digitalWrite(HeaterOne, LOW);  //Anything below the set temp, will cause a low will activate the relay turning the heater to turn on
+  }
+
+  if (tempF >= 38){
+    digitalWrite(HeaterTwo, HIGH); //this will cause my relay to stay off if the current heat is above 38 deg
+  } else{
+    digitalWrite(HeaterTwo, LOW);  // this will turn on the heater if the temp drops below 38 deg, this is back up heat if the first heater doesn't take care of the heat
   }
 
   Serial.println("Ambient Temp is: ");
