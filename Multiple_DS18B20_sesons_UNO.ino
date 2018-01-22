@@ -5,6 +5,7 @@
  * At my last house I had a Greenhouse and it was solar powered, and controlled by a Raspberry Pi.  This time I want to 
  * build a system that I could monitor the tempratures remotely and control stuff as needed.  This greenhouse is using Aquaponics
  * rather than Hydoponics, so I have the help of Fish to worry about.  I want to be able to auomate their feeding if we are out of the local area.
+ * I started off with the Multiple DS18B20 example.  I would like to have it work with somthing like Blynk.
  ****************************************************************************************************/
 
 
@@ -28,9 +29,19 @@ OneWire oneWire(ONE_WIRE_BUS);
 // Pass our oneWire reference to Dallas Temperature. 
 DallasTemperature sensors(&oneWire);
 
-// arrays to hold device addresses
+// declare the address of the Thermometers
   uint8_t insideThermometer[8] = { 0x28, 0xFF, 0x65, 0x63, 0xA3, 0x16, 0x03, 0x25 };
   uint8_t outsideThermometer[8] = { 0x28, 0xFF, 0xF7, 0x21, 0xA3, 0x16, 0x03, 0xF6 };
+
+
+  uint8_t temp1[8] = { 0x28, 0xFF, 0x60, 0x65, 0xA3, 0x16, 0x03, 0xFE };
+  uint8_t temp2[8] = { 0x28, 0xFF, 0xB4, 0x97, 0xA2, 0x16, 0x04, 0xE1 };
+  uint8_t temp3[8] = { 0x28, 0xFF, 0x8B, 0xA0, 0xA2, 0x16, 0x04, 0xC4 };
+  uint8_t temp4[8] = { 0x28, 0xFF, 0xB2, 0x4A, 0xA3, 0x16, 0x03, 0xC9 };
+  uint8_t temp5[8] = { 0x28, 0xFF, 0xAA, 0xE0, 0xA2, 0x16, 0x04, 0x11 };
+  uint8_t temp6[8] = { 0x28, 0xFF, 0x0E, 0xAC, 0xA2, 0x16, 0x04, 0xCF };
+  uint8_t temp7[8] = { 0x28, 0xFF, 0x0D, 0x7C, 0xA3, 0x16, 0x05, 0x75 };
+  uint8_t temp8[8] = { 0x28, 0xFF, 0xA3, 0xAD, 0xA2, 0x16, 0x04, 0x9F };
 
 
 void setup(void)
@@ -45,8 +56,22 @@ void setup(void)
   sensors.setResolution(insideThermometer, TEMPERATURE_PRECISION);
   sensors.setResolution(outsideThermometer, TEMPERATURE_PRECISION);
 
+  sensors.setResolution(temp1, TEMPERATURE_PRECISION);
+  sensors.setResolution(temp2, TEMPERATURE_PRECISION);   
+  sensors.setResolution(temp3, TEMPERATURE_PRECISION);
+  sensors.setResolution(temp4, TEMPERATURE_PRECISION);
+  sensors.setResolution(temp5, TEMPERATURE_PRECISION);
+  sensors.setResolution(temp6, TEMPERATURE_PRECISION);
+  sensors.setResolution(temp7, TEMPERATURE_PRECISION);
+  sensors.setResolution(temp8, TEMPERATURE_PRECISION);
+
+
   pinMode(HeaterOne, OUTPUT);  //this will be the first heater to turn on 
   pinMode(HeaterTwo, OUTPUT);  // this will be a second heater to turn on if HeaterOne is not doing the job
+
+  // Set both heaters to off.
+  digitalWrite(HeaterOne, HIGH);
+  digitalWrite(HeaterTwo, HIGH);
 }
 
 
@@ -101,6 +126,14 @@ void loop(void)
   //print the device information
   printData(insideThermometer);
   printData(outsideThermometer);
+  printData(temp1);
+  printData(temp2);
+  printData(temp3);
+  printData(temp4);
+  printData(temp5);
+  printData(temp6);
+  printData(temp7);
+  printData(temp8);
 
   if (tempF >= 43){
     digitalWrite(HeaterOne, HIGH); //Anything above the set temp, will cause a high on this relay will deactivate it, causing the heater to turn off
