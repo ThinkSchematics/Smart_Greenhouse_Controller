@@ -15,13 +15,24 @@
 
 // Data wire is plugged into port 2 on the Arduino
 #define ONE_WIRE_BUS 2
-#define TEMPERATURE_PRECISION 9
+#define TEMPERATURE_PRECISION 9  //this can be 9 to give you 0.1, or 12 to give you .01 precision
 //I want to save power as much as posible so I am going to run one small heater then add another as needed
 #define HeaterOne 8 //This will be used to activate a relay
 #define HeaterTwo 9 //This will turn on a second heather if the temp drops tpo low
+#define HeatPump 10 //This is a relay for the fish tank solar water heater's valve, to turn on if temp is <70deg F 
+#define Fan 11  //This is the relay for the Fan and Vent
+#define ThermalHeater 7  //This is for the Thermal Heater Fan.
 
 float ambientTemp = 0; //this will be used to store the ambient temp so this value can be used elsewhere
 float tempF = 0;
+
+float solarH20heatF = 0;
+float fishtankF = 0;
+float lgfloodF = 0;
+float smfloodF = 0;
+float raftF = 0;
+float floorventF = 0;
+float termalmassF = 0;
 
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
 OneWire oneWire(ONE_WIRE_BUS);
@@ -34,14 +45,14 @@ DallasTemperature sensors(&oneWire);
   uint8_t outsideThermometer[8] = { 0x28, 0xFF, 0xF7, 0x21, 0xA3, 0x16, 0x03, 0xF6 };
 
 
-  uint8_t temp1[8] = { 0x28, 0xFF, 0x60, 0x65, 0xA3, 0x16, 0x03, 0xFE };
-  uint8_t temp2[8] = { 0x28, 0xFF, 0xB4, 0x97, 0xA2, 0x16, 0x04, 0xE1 };
-  uint8_t temp3[8] = { 0x28, 0xFF, 0x8B, 0xA0, 0xA2, 0x16, 0x04, 0xC4 };
-  uint8_t temp4[8] = { 0x28, 0xFF, 0xB2, 0x4A, 0xA3, 0x16, 0x03, 0xC9 };
-  uint8_t temp5[8] = { 0x28, 0xFF, 0xAA, 0xE0, 0xA2, 0x16, 0x04, 0x11 };
-  uint8_t temp6[8] = { 0x28, 0xFF, 0x0E, 0xAC, 0xA2, 0x16, 0x04, 0xCF };
-  uint8_t temp7[8] = { 0x28, 0xFF, 0x0D, 0x7C, 0xA3, 0x16, 0x05, 0x75 };
-  uint8_t temp8[8] = { 0x28, 0xFF, 0xA3, 0xAD, 0xA2, 0x16, 0x04, 0x9F };
+  uint8_t temp1[8] = { 0x28, 0xFF, 0x60, 0x65, 0xA3, 0x16, 0x03, 0xFE };  //254 this is the solar water heater thermometer
+  uint8_t temp2[8] = { 0x28, 0xFF, 0xB4, 0x97, 0xA2, 0x16, 0x04, 0xE1 };  //225 this is the fish tank themometer
+  uint8_t temp3[8] = { 0x28, 0xFF, 0x8B, 0xA0, 0xA2, 0x16, 0x04, 0xC4 };  //196 this large flood and drain bed temp
+  uint8_t temp4[8] = { 0x28, 0xFF, 0xB2, 0x4A, 0xA3, 0x16, 0x03, 0xC9 };  //201 this small flood and drain bed temp
+  uint8_t temp5[8] = { 0x28, 0xFF, 0xAA, 0xE0, 0xA2, 0x16, 0x04, 0x11 };  //017 this is raft system's water temp
+  uint8_t temp6[8] = { 0x28, 0xFF, 0x0E, 0xAC, 0xA2, 0x16, 0x04, 0xCF };  //207 this is the temp of the floor vents
+  uint8_t temp7[8] = { 0x28, 0xFF, 0x0D, 0x7C, 0xA3, 0x16, 0x05, 0x75 };  //117 temp of the solar (thermal mass) heater
+  uint8_t temp8[8] = { 0x28, 0xFF, 0xA3, 0xAD, 0xA2, 0x16, 0x04, 0x9F };  //
 
 
 void setup(void)
@@ -56,22 +67,28 @@ void setup(void)
   sensors.setResolution(insideThermometer, TEMPERATURE_PRECISION);
   sensors.setResolution(outsideThermometer, TEMPERATURE_PRECISION);
 
-  sensors.setResolution(temp1, TEMPERATURE_PRECISION);
-  sensors.setResolution(temp2, TEMPERATURE_PRECISION);   
-  sensors.setResolution(temp3, TEMPERATURE_PRECISION);
-  sensors.setResolution(temp4, TEMPERATURE_PRECISION);
-  sensors.setResolution(temp5, TEMPERATURE_PRECISION);
-  sensors.setResolution(temp6, TEMPERATURE_PRECISION);
-  sensors.setResolution(temp7, TEMPERATURE_PRECISION);
+  sensors.setResolution(temp1, TEMPERATURE_PRECISION);  //this is the solar heater thermometer
+  sensors.setResolution(temp2, TEMPERATURE_PRECISION);  //this is the fish tank thermometer 
+  sensors.setResolution(temp3, TEMPERATURE_PRECISION);  //this large flood and drain bed temp
+  sensors.setResolution(temp4, TEMPERATURE_PRECISION);  //this small flood and drain bed temp
+  sensors.setResolution(temp5, TEMPERATURE_PRECISION);  //this is raft system's water temp
+  sensors.setResolution(temp6, TEMPERATURE_PRECISION);  //this is the temp of the floor vents
+  sensors.setResolution(temp7, TEMPERATURE_PRECISION);  //temp of the solar (thermal mass) heater
   sensors.setResolution(temp8, TEMPERATURE_PRECISION);
 
 
   pinMode(HeaterOne, OUTPUT);  //this will be the first heater to turn on 
   pinMode(HeaterTwo, OUTPUT);  // this will be a second heater to turn on if HeaterOne is not doing the job
+  pinMode(HeatPump, OUTPUT);   //this is the fish tank solar water heater
+  pinMode(Fan, OUTPUT);  //this is the Fan and Vent relay
+  pinMode(ThermalHeater, OUTPUT);  //this is for the Thermal Heater
 
   // Set both heaters to off.
-  digitalWrite(HeaterOne, HIGH);
-  digitalWrite(HeaterTwo, HIGH);
+  digitalWrite(HeaterOne, HIGH);  //start the heater in the off positon
+  digitalWrite(HeaterTwo, HIGH);  //start the heater in the off positon
+  digitalWrite(HeatPump, HIGH);  //start fish tank solar water heater in off position 
+  digitalWrite(Fan, HIGH);  //start the Fan in the off position 
+  digitalWrite(ThermalHeater, HIGH);  //start the Thermal Heater in the off position
 }
 
 
@@ -98,6 +115,14 @@ void printTemperature(DeviceAddress deviceAddress)
  
   ambientTemp = sensors.getTempC(insideThermometer);  // attempt to get this working so I can send the temp to the Blynk App
   tempF = ((ambientTemp)*1.8+32);
+
+  //solarH20heatF = 0;
+  //fishtankF = 0;
+  //lgfloodF = 0;
+  //smfloodF = 0;
+  //raftF = 0;
+  //floorventF = 0;
+  //termalmassF = 0;
 }
 
 
@@ -126,15 +151,20 @@ void loop(void)
   //print the device information
   printData(insideThermometer);
   printData(outsideThermometer);
-  printData(temp1);
-  printData(temp2);
-  printData(temp3);
-  printData(temp4);
-  printData(temp5);
-  printData(temp6);
-  printData(temp7);
+  printData(temp1);  //this is the solar heater thermometer
+  printData(temp2);  //this is the fish tank thermometer
+  printData(temp3);  //this large flood and drain bed temp
+  printData(temp4);  //this small flood and drain bed temp
+  printData(temp5);  //this is raft system's water temp
+  printData(temp6);  //this is the temp of the floor vents
+  printData(temp7);  //temp of the solar (thermal mass) heater
   printData(temp8);
 
+
+
+
+
+  // these next two IF statements, are to heat the greenhouse.
   if (tempF >= 43){
     digitalWrite(HeaterOne, HIGH); //Anything above the set temp, will cause a high on this relay will deactivate it, causing the heater to turn off
   } else{
@@ -146,6 +176,31 @@ void loop(void)
   } else{
     digitalWrite(HeaterTwo, LOW);  // this will turn on the heater if the temp drops below 38 deg, this is back up heat if the first heater doesn't take care of the heat
   }
+
+
+  //This is for the solar water heater.  It will turn on if the solar heater temp1 is higher thank fish tank temp2, if fist tank water is lower than 70deg F.
+  if (temp1 > temp2 && temp2 < 70){
+    digitalWrite(HeatPump,  LOW); //this will turn on the heat pump's relay
+  } else{
+    digitalWrite(HeatPump, HIGH);  //this will turn off the heat pump's relay
+  }
+
+
+  //This is for fan to cool the greenhouse.  It will turn on fan if the greenhouse is over a 85deg F.
+  if (insideThermometer > 85){
+    digitalWrite(Fan,  LOW); //this will turn on the fan relay and open the vent
+  } else{
+    digitalWrite(Fan, HIGH);  //this will turn off the fan relay and close the vent
+  }
+
+
+  //This is for fan for the solar thermal mass heater.  It will turn on fan if the greenhouse is over a 75deg F. 
+  if (insideThermometer > 75){
+    digitalWrite(ThermalHeater,  LOW); //this will turn on the fan relay and open the vent
+  } else{
+    digitalWrite(ThermalHeater, HIGH);  //this will turn off the fan relay and close the vent
+  }
+  
 
   Serial.println("Ambient Temp is: ");
   Serial.print(ambientTemp);
